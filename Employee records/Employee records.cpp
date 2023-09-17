@@ -1,20 +1,72 @@
-// Employee records.cpp : This file contains the 'main' function. Program execution begins and ends there.
-//
-
 #include <iostream>
+#include <fstream>
+#include <vector>
+
+using namespace std;
+
+typedef struct {
+    string name;
+    double salary;
+    string position;
+} Employee;
+
+#define FILE_PATH "data.bin"
+
+void    addTobin(Employee employee, string file_path)
+{
+    try {
+        ofstream file(file_path, ios::app | ios::binary);
+        if (!file) {
+            cerr << "Cannot open " << file_path << "!\n";
+            return;
+        }
+        file.write((char*)&employee, sizeof(Employee));
+        file.close();
+        cout << "\033[1;32m[SUCCESS]\033[0m the employee added.\n";
+    }
+    catch (exception& e) {
+        cerr << "error when we add to the file {" << e.what() << "}" << endl;
+    }
+}
+
+vector<Employee*> readFromBin(string file_path)
+{
+    vector<Employee*> allEmployee;
+    try {
+        ifstream file(file_path, ios::binary | ios::ate);
+        if (file)
+        {
+            streampos size = file.tellg();
+            char* memblock = new char[size];
+            file.read(memblock, size);
+            file.close();
+
+            long long byteIndex = 0;
+            while (byteIndex < size)
+            {
+                Employee* employee = (Employee*)(memblock + byteIndex);
+                allEmployee.push_back(employee);
+                byteIndex += sizeof(Employee);
+            }
+        }
+        else
+            cerr << "Cannot open " << file_path << "!\n";
+    }
+    catch (exception& e) {
+        cerr << "error when we add to the file {" << e.what() << "}" << endl;
+    }
+    return allEmployee;
+}
 
 int main()
 {
-    std::cout << "Hello World!\n";
+    Employee name;
+    name.name = "Marwan";
+    name.salary = 120;
+    name.position = "S.E";
+    addTobin(name, FILE_PATH);
+    std::cout << name.name << "\n";
+    std::cout << name.salary << "\n";
+    std::cout << name.position << "\n";
+    return 0;
 }
-
-// Run program: Ctrl + F5 or Debug > Start Without Debugging menu
-// Debug program: F5 or Debug > Start Debugging menu
-
-// Tips for Getting Started: 
-//   1. Use the Solution Explorer window to add/manage files
-//   2. Use the Team Explorer window to connect to source control
-//   3. Use the Output window to see build output and other messages
-//   4. Use the Error List window to view errors
-//   5. Go to Project > Add New Item to create new code files, or Project > Add Existing Item to add existing code files to the project
-//   6. In the future, to open this project again, go to File > Open > Project and select the .sln file
