@@ -32,41 +32,66 @@ void    addTobin(Employee employee, string file_path)
 vector<Employee*> readFromBin(string file_path)
 {
     vector<Employee*> allEmployee;
-    try {
-        ifstream file(file_path, ios::binary | ios::ate);
-        if (file)
-        {
-            streampos size = file.tellg();
-            char* memblock = new char[size];
-            file.read(memblock, size);
-            file.close();
+    ifstream file(file_path, ios::in | ios::binary | ios::ate);
+    streampos size = file.tellg();
+    char* memblock = new char[size];
+    file.seekg(0, ios::beg);
+    file.read(memblock, size);
+    file.close();
 
-            long long byteIndex = 0;
-            while (byteIndex < size)
-            {
-                Employee* employee = (Employee*)(memblock + byteIndex);
-                allEmployee.push_back(employee);
-                byteIndex += sizeof(Employee);
-            }
+    long long byteIndex = 0;
+    while (byteIndex < size)
+    {
+        if (byteIndex + sizeof(Employee) <= size)
+        {
+            Employee* employee = new Employee;
+            memcpy(employee, memblock + byteIndex, sizeof(Employee));
+            allEmployee.push_back(employee);
+            byteIndex += sizeof(Employee);
         }
         else
-            cerr << "Cannot open " << file_path << "!\n";
+        {
+            cerr << "Error: Incomplete data in file." << endl;
+            break;
+        }
     }
-    catch (exception& e) {
-        cerr << "error when we add to the file {" << e.what() << "}" << endl;
-    }
+
+    delete[] memblock;
     return allEmployee;
 }
 
+
 int main()
 {
-    Employee name;
-    name.name = "Marwan";
-    name.salary = 120;
-    name.position = "S.E";
-    addTobin(name, FILE_PATH);
-    std::cout << name.name << "\n";
-    std::cout << name.salary << "\n";
-    std::cout << name.position << "\n";
+    Employee test;
+    test.name = "Marwan";
+    test.salary = 129;
+    test.position = "S-F";
+
+    addTobin(test, FILE_PATH);
+    vector<Employee*> allEmployee = readFromBin(FILE_PATH);
+    // Iterate through each employee in the vector
+    for (auto employeePtr : allEmployee) {
+        std::cout << "Name: " << employeePtr->name << "\n";
+        std::cout << "Salary: " << employeePtr->salary << "\n";
+        std::cout << "Position: " << employeePtr->position << "\n";
+        std::cout << "---------------------------\n"; // Optional separator
+    }
+    for (auto employeePtr : allEmployee) {
+        delete employeePtr;
+    }
+
     return 0;
 }
+
+
+    //try {
+        //if (file)
+        //{
+        //}
+        //else
+        //    cerr << "Cannot open " << file_path << "!\n";
+    //}
+    //catch (exception& e) {
+        //cerr << "error when we add to the file {" << e.what() << "}" << endl;
+    //}
